@@ -1,0 +1,58 @@
+﻿@model WeatherForecast
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Weather Forecast";
+}
+
+<h1>Weather Forecast</h1>
+
+<h2>Daily Weather</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Weather Code</th>
+            <th>Max Temperature (°C)</th>
+            <th>Min Temperature (°C)</th>
+            <th>Precipitation (mm)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.Daily.Time.Count; i++)
+        {
+            <tr>
+                <td>@Model.Hourly.Time[i]</td>
+                <td>@Model.Daily.WeatherCode[i]</td>
+                <td>@Model.Daily.Temperature2mMax[i]</td>
+                <td>@Model.Daily.Temperature2mMin[i]</td>
+                <td>@Model.Daily.PrecipitationSum[i]</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Hourly Weather</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Time</th>
+            <th>Temperature (°C)</th>
+            <th>Relative Humidity (%)</th>
+            <th>Precipitation (mm)</th>
+            <th>Soil Temperature (10-35cm) (°C)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.Hourly.Time.Count; i++)
+        {
+            <tr>
+                <td>@Model.Hourly.Time[i]</td>
+                <td>@Model.Hourly.Temperature2m[i]</td>
+                <td>@Model.Hourly.RelativeHumidity2m[i]</td>
+                <td>@Model.Hourly.Precipitation[i]</td>
+                <td>@Model.Hourly.SoilTemperature10To35cm[i]</td>
+            </tr>
+        }
+    </tbody>
+</table>
