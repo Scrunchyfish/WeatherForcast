@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="26.1.41" />
+    <PackageReference Include="Syncfusion.Licensing" Version="26.1.41" />
   </ItemGroup>
 
 </Project>

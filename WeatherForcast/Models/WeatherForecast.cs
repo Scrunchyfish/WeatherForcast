@@ -4,8 +4,7 @@
 
     using Newtonsoft.Json;
     using System.Collections.Generic;
-
-   
+    using System.ComponentModel.DataAnnotations;
 
     public class WeatherForecast
     {
@@ -35,7 +34,13 @@
 
         [JsonProperty("hourly")]
         public HourlyWeather Hourly { get; set; } = new HourlyWeather();
-    }
+
+        public LocationInputModel LocationInput { get; set; } = new LocationInputModel();
+
+        public GeocodeResponse GeocodeResponse { get; set; }
+
+		public string Address { get; set; }
+	}
 
     public class DailyWeather
     {
@@ -70,9 +75,21 @@
         public List<double?> Precipitation { get; set; } = new List<double?>();
 
         [JsonProperty("soil_temperature_10_to_35cm")]
-        public List<double> SoilTemperature10To35cm { get; set; } = new List<double>();
+        public List<double?> SoilTemperature10To35cm { get; set; } = new List<double?>();
     }
 
+    public class LocationInputModel
+    {
+        [Required]
+        [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90 degrees.")]
+        public double Latitude { get; set; } = -34.9287;
+
+        [Required]
+        [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180 degrees.")]
+        public double Longitude { get; set; } = 138.5986;
+
+
+    }
 
 
 }

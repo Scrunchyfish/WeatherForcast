@@ -1,58 +1,152 @@
 ﻿@model WeatherForecast
 @using System.Globalization
+@using Newtonsoft.Json
+@using WeatherForcast.Services
+
 
 @{
     ViewData["Title"] = "Weather Forecast";
+    var dataSource = ViewBag.dataSource as List<WeatherForcast.Models.ChartData>;
+
 }
 
 <h1>Weather Forecast</h1>
 
+<h2>Geocode Lookup</h2>
+
+<form method="post" asp-controller="Home" asp-action="GetCoords">
+	<div class="form-group">
+		<label asp-for="Address">Address:</label>
+		<input asp-for="Address" type="text" id="address" />
+	</div>
+	<button type="submit">Get Coordinates</button>
+</form>
+
+@if (Model.GeocodeResponse != null)
+{
+	<div>
+		<h2>Coordinates</h2>
+		<p>Longitude: @Model.GeocodeResponse.Lon</p>
+		<p>Latitude: @Model.GeocodeResponse.Lat</p>
+	</div>
+	Model.Latitude = Model.GeocodeResponse.Lat;
+	Model.Longitude = Model.GeocodeResponse.Lon;
+
+}
+
+
+<h2>Location</h2>
+<form asp-action="Index" method="post">
+	<div class="form-group">
+		<label asp-for="Latitude"></label>
+		<input asp-for="Latitude" class="form-control" />
+		<span asp-validation-for="Latitude" class="text-danger"></span>
+	</div>
+	<div class="form-group">
+		<label asp-for="Longitude"></label>
+		<input asp-for="Longitude" class="form-control" />
+		<span asp-validation-for="Longitude" class="text-danger"></span>
+	</div>
+	<button type="submit" class="btn btn-primary">Get Weather</button>
+</form>
+
+
 <h2>Daily Weather</h2>
 <table class="table">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Weather Code</th>
-            <th>Max Temperature (°C)</th>
-            <th>Min Temperature (°C)</th>
-            <th>Precipitation (mm)</th>
-        </tr>
-    </thead>
-    <tbody>
-        @for (int i = 0; i < Model.Daily.Time.Count; i++)
-        {
-            <tr>
-                <td>@Model.Hourly.Time[i]</td>
-                <td>@Model.Daily.WeatherCode[i]</td>
-                <td>@Model.Daily.Temperature2mMax[i]</td>
-                <td>@Model.Daily.Temperature2mMin[i]</td>
-                <td>@Model.Daily.PrecipitationSum[i]</td>
-            </tr>
-        }
-    </tbody>
+	<thead>
+		<tr>
+			<th>Date</th>
+			<th>Weather Code</th>
+			<th>Icon</th>
+			<th>Max Temperature (°C)</th>
+			<th>Min Temperature (°C)</th>
+			<th>Precipitation (mm)</th>
+		</tr>
+	</thead>
+	<tbody>
+		@for (int i = 0; i < Model.Daily.Time.Count; i++)
+		{
+			DateTime dailyDateTime = DateTime.Parse(Model.Daily.Time[i]);
+			string formattedDateTime = dailyDateTime.ToString("dd-MM-yyyy");
+
+			var weatherCode = Model.Daily.WeatherCode[i];
+			var weatherInfo = WeatherCodeMapper.WeatherCodes.GetValueOrDefault(weatherCode ?? 0, ("Unknown", "", ""));
+			var weatherInfoDescription = weatherInfo.Item1;
+			var weatherInfoImgDay = weatherInfo.Item2;
+			var weatherInfoImgNight = weatherInfo.Item3;
+
+			<tr>
+				<td><h4>@dailyDateTime.DayOfWeek.ToString()</h4><br /><br />@formattedDateTime</td>
+				<td>@weatherInfoDescription</td>
+				@* if block, fetch sunset and sunrise, if night show night, if day show day. *@
+				<td><img src="@weatherInfoImgDay" /> </td>
+				<td>@Model.Daily.Temperature2mMax[i]</td>
+				<td>@Model.Daily.Temperature2mMin[i]</td>
+				<td>@Model.Daily.PrecipitationSum[i]</td>
+			</tr>
+		}
+	</tbody>
 </table>
+
+
+<ejs-chart id="container" height="800px">
+	<e-chart-tooltipsettings enable="true">
+	</e-chart-tooltipsettings>
+		<e-chart-primaryxaxis valueType="DateTime" intervalType="Auto">
+		<e-majorgridlines width="0"></e-majorgridlines>
+		<e-minorgridlines width="0"></e-minorgridlines>
+		<e-majorgridlines width="1"></e-majorgridlines>
+		<e-minorgridlines width="1"></e-minorgridlines>
+		</e-chart-primaryxaxis>
+		<e-series-collection>
+			<e-series name="Hourly Temperature" xName="xValue" yName="yTemperature" width="2" dataSource="@dataSource"
+					  type="@Syncfusion.EJ2.Charts.ChartSeriesType.Line">
+					 
+			@* <e-series-marker visible="true">
+				<e-series-datalabel visible="true" position="Middle"></e-series-datalabel>
+			</e-series-marker> *@
+			</e-series>
+		<e-series name="Hourly Rain" xName="xValue" yName="yRain" width="3"  dataSource="@dataSource"
+					  type="@Syncfusion.EJ2.Charts.ChartSeriesType.Line">
+			
+			</e-series>
+		<e-series name="Soil Temperature" xName="xValue" yName="ySoilTemperature" width="4" dataSource="@dataSource"
+					  type="@Syncfusion.EJ2.Charts.ChartSeriesType.Line">
+			
+			</e-series> 
+		</e-series-collection>
+	</ejs-chart>
+
 
 <h2>Hourly Weather</h2>
 <table class="table">
-    <thead>
-        <tr>
-            <th>Time</th>
-            <th>Temperature (°C)</th>
-            <th>Relative Humidity (%)</th>
-            <th>Precipitation (mm)</th>
-            <th>Soil Temperature (10-35cm) (°C)</th>
-        </tr>
-    </thead>
-    <tbody>
-        @for (int i = 0; i < Model.Hourly.Time.Count; i++)
-        {
-            <tr>
-                <td>@Model.Hourly.Time[i]</td>
-                <td>@Model.Hourly.Temperature2m[i]</td>
-                <td>@Model.Hourly.RelativeHumidity2m[i]</td>
-                <td>@Model.Hourly.Precipitation[i]</td>
-                <td>@Model.Hourly.SoilTemperature10To35cm[i]</td>
-            </tr>
-        }
-    </tbody>
+	<thead>
+		<tr>
+			<th>Time</th>
+			<th>Temperature (°C)</th>
+			<th>Relative Humidity (%)</th>
+			<th>Precipitation (mm)</th>
+			<th>Soil Temperature (10-35cm) (°C)</th>
+		</tr>
+	</thead>
+	<tbody>
+		@for (int i = 0; i < Model.Hourly.Time.Count; i++)
+		{
+			DateTime hourlyDateTime = DateTime.Parse(Model.Hourly.Time[i]);
+			string formattedDateTime = hourlyDateTime.ToString("HH:mm dd-MM-yyyy");
+			<tr>
+				<td>@formattedDateTime</td>
+				<td>@Model.Hourly.Temperature2m[i]</td>
+				<td>@Model.Hourly.RelativeHumidity2m[i]</td>
+				<td>@Model.Hourly.Precipitation[i]</td>
+				<td>@Model.Hourly.SoilTemperature10To35cm[i]</td>
+			</tr>
+		}
+	</tbody>
 </table>
+
+@section Scripts{
+	<script>
+	
+	</script>
+}
